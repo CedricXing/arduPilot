@@ -14,13 +14,13 @@ void ModeAcro::run()
     float target_roll, target_pitch, target_yaw;
     get_pilot_desired_angle_rates(channel_roll->get_control_in(), channel_pitch->get_control_in(), channel_yaw->get_control_in(), target_roll, target_pitch, target_yaw);
 
-    if (!motors->armed()) {
+    if (!motors->armed()) {  EXECUTE_MARK();
         // Motors should be Stopped
         motors->set_desired_spool_state(AP_Motors::DesiredSpoolState::SHUT_DOWN);
-    } else if (copter.ap.throttle_zero) {
+    } else if (copter.ap.throttle_zero) {  EXECUTE_MARK();
         // Attempting to Land
         motors->set_desired_spool_state(AP_Motors::DesiredSpoolState::GROUND_IDLE);
-    } else {
+    } else {  EXECUTE_MARK();
         motors->set_desired_spool_state(AP_Motors::DesiredSpoolState::THROTTLE_UNLIMITED);
     }
 
@@ -37,7 +37,7 @@ void ModeAcro::run()
         break;
     case AP_Motors::SpoolState::THROTTLE_UNLIMITED:
         // clear landing flag above zero throttle
-        if (!motors->limit.throttle_lower) {
+        if (!motors->limit.throttle_lower) {  EXECUTE_MARK();
             set_land_complete(false);
         }
         break;
@@ -67,22 +67,22 @@ void ModeAcro::get_pilot_desired_angle_rates(int16_t roll_in, int16_t pitch_in, 
     // apply circular limit to pitch and roll inputs
     float total_in = norm(pitch_in, roll_in);
 
-    if (total_in > ROLL_PITCH_YAW_INPUT_MAX) {
+    if (total_in > ROLL_PITCH_YAW_INPUT_MAX) {  EXECUTE_MARK();
         float ratio = (float)ROLL_PITCH_YAW_INPUT_MAX / total_in;
         roll_in *= ratio;
         pitch_in *= ratio;
     }
     
     // calculate roll, pitch rate requests
-    if (g.acro_rp_expo <= 0) {
+    if (g.acro_rp_expo <= 0) {  EXECUTE_MARK();
         rate_bf_request.x = roll_in * g.acro_rp_p;
         rate_bf_request.y = pitch_in * g.acro_rp_p;
-    } else {
+    } else {  EXECUTE_MARK();
         // expo variables
         float rp_in, rp_in3, rp_out;
 
         // range check expo
-        if (g.acro_rp_expo > 1.0f) {
+        if (g.acro_rp_expo > 1.0f) {  EXECUTE_MARK();
             g.acro_rp_expo = 1.0f;
         }
 
@@ -104,7 +104,7 @@ void ModeAcro::get_pilot_desired_angle_rates(int16_t roll_in, int16_t pitch_in, 
 
     // calculate earth frame rate corrections to pull the copter back to level while in ACRO mode
 
-    if (g.acro_trainer != ACRO_TRAINER_DISABLED) {
+    if (g.acro_trainer != ACRO_TRAINER_DISABLED) {  EXECUTE_MARK();
 
         // get attitude targets
         const Vector3f att_target = attitude_control->get_att_target_euler_cd();
@@ -121,17 +121,17 @@ void ModeAcro::get_pilot_desired_angle_rates(int16_t roll_in, int16_t pitch_in, 
         rate_ef_level.z = 0;
 
         // Calculate angle limiting earth frame rate commands
-        if (g.acro_trainer == ACRO_TRAINER_LIMITED) {
+        if (g.acro_trainer == ACRO_TRAINER_LIMITED) {  EXECUTE_MARK();
             const float angle_max = copter.aparm.angle_max;
-            if (roll_angle > angle_max){
+            if (roll_angle > angle_max){  EXECUTE_MARK();
                 rate_ef_level.x +=  AC_AttitudeControl::sqrt_controller(angle_max - roll_angle, g.acro_rp_p * 4.5, attitude_control->get_accel_roll_max(), G_Dt);
-            }else if (roll_angle < -angle_max) {
+            }else if (roll_angle < -angle_max) {  EXECUTE_MARK();
                 rate_ef_level.x +=  AC_AttitudeControl::sqrt_controller(-angle_max - roll_angle, g.acro_rp_p * 4.5, attitude_control->get_accel_roll_max(), G_Dt);
             }
 
-            if (pitch_angle > angle_max){
+            if (pitch_angle > angle_max){  EXECUTE_MARK();
                 rate_ef_level.y +=  AC_AttitudeControl::sqrt_controller(angle_max - pitch_angle, g.acro_rp_p * 4.5, attitude_control->get_accel_pitch_max(), G_Dt);
-            }else if (pitch_angle < -angle_max) {
+            }else if (pitch_angle < -angle_max) {  EXECUTE_MARK();
                 rate_ef_level.y +=  AC_AttitudeControl::sqrt_controller(-angle_max - pitch_angle, g.acro_rp_p * 4.5, attitude_control->get_accel_pitch_max(), G_Dt);
             }
         }
@@ -140,12 +140,12 @@ void ModeAcro::get_pilot_desired_angle_rates(int16_t roll_in, int16_t pitch_in, 
         attitude_control->euler_rate_to_ang_vel(attitude_control->get_att_target_euler_cd()*radians(0.01f), rate_ef_level, rate_bf_level);
 
         // combine earth frame rate corrections with rate requests
-        if (g.acro_trainer == ACRO_TRAINER_LIMITED) {
+        if (g.acro_trainer == ACRO_TRAINER_LIMITED) {  EXECUTE_MARK();
             rate_bf_request.x += rate_bf_level.x;
             rate_bf_request.y += rate_bf_level.y;
             rate_bf_request.z += rate_bf_level.z;
-        }else{
-            float acro_level_mix = constrain_float(1-float(MAX(MAX(abs(roll_in), abs(pitch_in)), abs(yaw_in))/4500.0), 0, 1)*ahrs.cos_pitch();
+        }else{  EXECUTE_MARK();
+            /*!! BUG !! */ float acro_level_mix = constrain_float(float(1-MAX(MAX(abs(roll_in), abs(pitch_in)), abs(yaw_in))/4500.0), 0, 1)*ahrs.cos_pitch();
 
             // Scale leveling rates by stick input
             rate_bf_level = rate_bf_level*acro_level_mix;

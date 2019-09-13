@@ -715,6 +715,7 @@ void UARTDriver::_timer_tick(void)
             _fd = -1;
             _connected = false;
             fprintf(stdout, "Closed connection on serial port %u\n", _portNumber);
+	    ExecRec::Instance()->printResult();
             fflush(stdout);
             return;
         }

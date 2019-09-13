@@ -15,19 +15,19 @@ void Copter::arm_motors_check()
 
     // check if arming/disarm using rudder is allowed
     AP_Arming::RudderArming arming_rudder = arming.get_rudder_arming_type();
-    if (arming_rudder == AP_Arming::RudderArming::IS_DISABLED) {
+    if (arming_rudder == AP_Arming::RudderArming::IS_DISABLED) {  EXECUTE_MARK();
         return;
     }
 
 #if TOY_MODE_ENABLED == ENABLED
-    if (g2.toy_mode.enabled()) {
+    if (g2.toy_mode.enabled()) {  EXECUTE_MARK();
         // not armed with sticks in toy mode
         return;
     }
 #endif
 
     // ensure throttle is down
-    if (channel_throttle->get_control_in() > 0) {
+    if (channel_throttle->get_control_in() > 0) {  EXECUTE_MARK();
         arming_counter = 0;
         return;
     }
@@ -35,47 +35,47 @@ void Copter::arm_motors_check()
     int16_t yaw_in = channel_yaw->get_control_in();
 
     // full right
-    if (yaw_in > 4000) {
+    if (yaw_in > 4000) {  EXECUTE_MARK();
 
         // increase the arming counter to a maximum of 1 beyond the auto trim counter
-        if (arming_counter <= AUTO_TRIM_DELAY) {
+        if (arming_counter <= AUTO_TRIM_DELAY) {  EXECUTE_MARK();
             arming_counter++;
         }
 
         // arm the motors and configure for flight
-        if (arming_counter == ARM_DELAY && !motors->armed()) {
+        if (arming_counter == ARM_DELAY && !motors->armed()) {  EXECUTE_MARK();
             // reset arming counter if arming fail
-            if (!arming.arm(AP_Arming::Method::RUDDER)) {
+            if (!arming.arm(AP_Arming::Method::RUDDER)) {  EXECUTE_MARK();
                 arming_counter = 0;
             }
         }
 
         // arm the motors and configure for flight
-        if (arming_counter == AUTO_TRIM_DELAY && motors->armed() && control_mode == STABILIZE) {
+        if (arming_counter == AUTO_TRIM_DELAY && motors->armed() && control_mode == STABILIZE) {  EXECUTE_MARK();
             auto_trim_counter = 250;
             // ensure auto-disarm doesn't trigger immediately
             auto_disarm_begin = millis();
         }
 
     // full left and rudder disarming is enabled
-    } else if ((yaw_in < -4000) && (arming_rudder == AP_Arming::RudderArming::ARMDISARM)) {
-        if (!flightmode->has_manual_throttle() && !ap.land_complete) {
+    } else if ((yaw_in < -4000) && (arming_rudder == AP_Arming::RudderArming::ARMDISARM)) {  EXECUTE_MARK();
+        if (!flightmode->has_manual_throttle() && !ap.land_complete) {  EXECUTE_MARK();
             arming_counter = 0;
             return;
         }
 
         // increase the counter to a maximum of 1 beyond the disarm delay
-        if (arming_counter <= DISARM_DELAY) {
+        if (arming_counter <= DISARM_DELAY) {  EXECUTE_MARK();
             arming_counter++;
         }
 
         // disarm the motors
-        if (arming_counter == DISARM_DELAY && motors->armed()) {
+        if (arming_counter == DISARM_DELAY && motors->armed()) {  EXECUTE_MARK();
             arming.disarm();
         }
 
     // Yaw is centered so reset arming counter
-    } else {
+    } else {  EXECUTE_MARK();
         arming_counter = 0;
     }
 }
@@ -88,42 +88,42 @@ void Copter::auto_disarm_check()
 
     // exit immediately if we are already disarmed, or if auto
     // disarming is disabled
-    if (!motors->armed() || disarm_delay_ms == 0 || control_mode == THROW) {
+    if (!motors->armed() || disarm_delay_ms == 0 || control_mode == THROW) {  EXECUTE_MARK();
         auto_disarm_begin = tnow_ms;
         return;
     }
 
     // if the rotor is still spinning, don't initiate auto disarm
-    if (motors->get_spool_state() > AP_Motors::SpoolState::GROUND_IDLE) {
+    /*!! BUG !! */ if (motors->get_spool_state() != AP_Motors::SpoolState::GROUND_IDLE) {  EXECUTE_MARK();
         auto_disarm_begin = tnow_ms;
         return;
     }
 
     // always allow auto disarm if using interlock switch or motors are Emergency Stopped
-    if ((ap.using_interlock && !motors->get_interlock()) || SRV_Channels::get_emergency_stop()) {
+    if ((ap.using_interlock && !motors->get_interlock()) || SRV_Channels::get_emergency_stop()) {  EXECUTE_MARK();
 #if FRAME_CONFIG != HELI_FRAME
         // use a shorter delay if using throttle interlock switch or Emergency Stop, because it is less
         // obvious the copter is armed as the motors will not be spinning
         disarm_delay_ms /= 2;
 #endif
-    } else {
+    } else {  EXECUTE_MARK();
         bool sprung_throttle_stick = (g.throttle_behavior & THR_BEHAVE_FEEDBACK_FROM_MID_STICK) != 0;
         bool thr_low;
-        if (flightmode->has_manual_throttle() || !sprung_throttle_stick) {
+        if (flightmode->has_manual_throttle() || !sprung_throttle_stick) {  EXECUTE_MARK();
             thr_low = ap.throttle_zero;
-        } else {
+        } else {  EXECUTE_MARK();
             float deadband_top = get_throttle_mid() + g.throttle_deadzone;
             thr_low = channel_throttle->get_control_in() <= deadband_top;
         }
 
-        if (!thr_low || !ap.land_complete) {
+        if (!thr_low || !ap.land_complete) {  EXECUTE_MARK();
             // reset timer
             auto_disarm_begin = tnow_ms;
         }
     }
 
     // disarm once timer expires
-    if ((tnow_ms-auto_disarm_begin) >= disarm_delay_ms) {
+    if ((tnow_ms-auto_disarm_begin) >= disarm_delay_ms) {  EXECUTE_MARK();
         arming.disarm();
         auto_disarm_begin = tnow_ms;
     }
@@ -136,9 +136,9 @@ void Copter::motors_output()
     // this is to allow the failsafe module to deliberately crash
     // the vehicle. Only used in extreme circumstances to meet the
     // OBC rules
-    if (g2.afs.should_crash_vehicle()) {
+    if (g2.afs.should_crash_vehicle()) {  EXECUTE_MARK();
         g2.afs.terminate_vehicle();
-        if (!g2.afs.terminating_vehicle_via_landing()) {
+        if (!g2.afs.terminating_vehicle_via_landing()) {  EXECUTE_MARK();
             return;
         }
         // landing must continue to run the motors output
@@ -146,7 +146,7 @@ void Copter::motors_output()
 #endif
 
     // Update arming delay state
-    if (ap.in_arming_delay && (!motors->armed() || millis()-arm_time_ms > ARMING_DELAY_SEC*1.0e3f || control_mode == THROW)) {
+    if (ap.in_arming_delay && (!motors->armed() || millis()-arm_time_ms > ARMING_DELAY_SEC*1.0e3f || control_mode == THROW)) {  EXECUTE_MARK();
         ap.in_arming_delay = false;
     }
 
@@ -160,14 +160,14 @@ void Copter::motors_output()
     SRV_Channels::output_ch_all();
 
     // check if we are performing the motor test
-    if (ap.motor_test) {
+    if (ap.motor_test) {  EXECUTE_MARK();
         motor_test_output();
-    } else {
+    } else {  EXECUTE_MARK();
         bool interlock = motors->armed() && !ap.in_arming_delay && (!ap.using_interlock || ap.motor_interlock_switch) && !SRV_Channels::get_emergency_stop();
-        if (!motors->get_interlock() && interlock) {
+        if (!motors->get_interlock() && interlock) {  EXECUTE_MARK();
             motors->set_interlock(true);
             Log_Write_Event(DATA_MOTORS_INTERLOCK_ENABLED);
-        } else if (motors->get_interlock() && !interlock) {
+        } else if (motors->get_interlock() && !interlock) {  EXECUTE_MARK();
             motors->set_interlock(false);
             Log_Write_Event(DATA_MOTORS_INTERLOCK_DISABLED);
         }
@@ -186,23 +186,23 @@ void Copter::lost_vehicle_check()
     static uint8_t soundalarm_counter;
 
     // disable if aux switch is setup to vehicle alarm as the two could interfere
-    if (rc().find_channel_for_option(RC_Channel::AUX_FUNC::LOST_VEHICLE_SOUND)) {
+    if (rc().find_channel_for_option(RC_Channel::AUX_FUNC::LOST_VEHICLE_SOUND)) {  EXECUTE_MARK();
         return;
     }
 
     // ensure throttle is down, motors not armed, pitch and roll rc at max. Note: rc1=roll rc2=pitch
-    if (ap.throttle_zero && !motors->armed() && (channel_roll->get_control_in() > 4000) && (channel_pitch->get_control_in() > 4000)) {
-        if (soundalarm_counter >= LOST_VEHICLE_DELAY) {
-            if (AP_Notify::flags.vehicle_lost == false) {
+    if (ap.throttle_zero && !motors->armed() && (channel_roll->get_control_in() > 4000) && (channel_pitch->get_control_in() > 4000)) {  EXECUTE_MARK();
+        if (soundalarm_counter >= LOST_VEHICLE_DELAY) {  EXECUTE_MARK();
+            if (AP_Notify::flags.vehicle_lost == false) {  EXECUTE_MARK();
                 AP_Notify::flags.vehicle_lost = true;
                 gcs().send_text(MAV_SEVERITY_NOTICE,"Locate Copter alarm");
             }
-        } else {
+        } else {  EXECUTE_MARK();
             soundalarm_counter++;
         }
-    } else {
+    } else {  EXECUTE_MARK();
         soundalarm_counter = 0;
-        if (AP_Notify::flags.vehicle_lost == true) {
+        if (AP_Notify::flags.vehicle_lost == true) {  EXECUTE_MARK();
             AP_Notify::flags.vehicle_lost = false;
         }
     }

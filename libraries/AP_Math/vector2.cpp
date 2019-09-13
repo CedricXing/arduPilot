@@ -132,14 +132,14 @@ template <typename T>
 float Vector2<T>::angle(const Vector2<T> &v2) const
 {
     const float len = this->length() * v2.length();
-    if (len <= 0) {
+    if (len <= 0) {  EXECUTE_MARK();
         return 0.0f;
     }
     const float cosv = ((*this)*v2) / len;
-    if (cosv >= 1) {
+    if (cosv >= 1) {  EXECUTE_MARK();
         return 0.0f;
     }
-    if (cosv <= -1) {
+    if (cosv <= -1) {  EXECUTE_MARK();
         return M_PI;
     }
     return acosf(cosv);
@@ -163,21 +163,21 @@ bool Vector2<T>::segment_intersection(const Vector2<T>& seg1_start, const Vector
     const Vector2<T> ss2_ss1 = seg2_start - seg1_start;
     const float r1xr2 = r1 % r2;
     const float q_pxr = ss2_ss1 % r1;
-    if (fabsf(r1xr2) < FLT_EPSILON) {
+    if (fabsf(r1xr2) < FLT_EPSILON) {  EXECUTE_MARK();
         // either collinear or parallel and non-intersecting
         return false;
-    } else {
+    } else {  EXECUTE_MARK();
         // t = (q - p) * s / (r * s)
         // u = (q - p) * r / (r * s)
         const float t = (ss2_ss1 % r2) / r1xr2;
         const float u = q_pxr / r1xr2;
-        if ((u >= 0) && (u <= 1) && (t >= 0) && (t <= 1)) {
+        if ((u >= 0) && (u <= 1) && (t >= 0) && (t <= 1)) {  EXECUTE_MARK();
             // lines intersect
             // t can be any non-negative value because (p, p + r) is a ray
             // u must be between 0 and 1 because (q, q + s) is a line segment
             intersection = seg1_start + (r1*t);
             return true;
-        } else {
+        } else {  EXECUTE_MARK();
             // non-parallel and non-intersecting
             return false;
         }
@@ -202,15 +202,15 @@ bool Vector2<T>::circle_segment_intersection(const Vector2<T>& seg_start, const 
     const float delta = sq(b) - (4.0f * a * c);
 
     // check for invalid data
-    if (::is_zero(a)) {
+    if (::is_zero(a)) {  EXECUTE_MARK();
         return false;
     }
-    if (isnan(a) || isnan(b) || isnan(c) || isnan(delta)) {
+    if (isnan(a) || isnan(b) || isnan(c) || isnan(delta)) {  EXECUTE_MARK();
        return false;
     }
 
     // check for invalid delta (i.e. discriminant)
-    if (delta < 0.0f) {
+    if (delta < 0.0f) {  EXECUTE_MARK();
         return false;
     }
 
@@ -230,7 +230,7 @@ bool Vector2<T>::circle_segment_intersection(const Vector2<T>& seg_start, const 
     //   intersection.x = seg_start.x + t1 * seg_end_minus_start.x;
     //   intersection.y = seg_start.y + t1 * seg_end_minus_start.y;
 
-    if ((t1 >= 0.0f) && (t1 <= 1.0f)) {
+    if ((t1 >= 0.0f) && (t1 <= 1.0f)) {  EXECUTE_MARK();
         // t1 is the intersection, and it is closer than t2 (since t1 uses -b - discriminant)
         // Impale, Poke
         intersection = seg_start + (seg_end_minus_start * t1);
@@ -238,7 +238,7 @@ bool Vector2<T>::circle_segment_intersection(const Vector2<T>& seg_start, const 
     }
 
     // here t1 did not intersect so we are either started inside the sphere or completely past it
-    if ((t2 >= 0.0f) && (t2 <= 1.0f)) {
+    if ((t2 >= 0.0f) && (t2 <= 1.0f)) {  EXECUTE_MARK();
         // ExitWound
         intersection = seg_start + (seg_end_minus_start * t2);
         return true;
@@ -294,7 +294,7 @@ Vector2<T> Vector2<T>::perpendicular(const Vector2<T> &pos_delta, const Vector2<
     const Vector2<T> perpendicular2 = Vector2<T>(v1[1], -v1[0]);
     const T d1 = perpendicular1 * pos_delta;
     const T d2 = perpendicular2 * pos_delta;
-    if (d1 > d2) {
+    if (d1 > d2) {  EXECUTE_MARK();
         return perpendicular1;
     }
     return perpendicular2;
@@ -311,7 +311,7 @@ Vector2<T> Vector2<T>::closest_point(const Vector2<T> &p, const Vector2<T> &v, c
 {
     // length squared of line segment
     const float l2 = (v - w).length_squared();
-    if (l2 < FLT_EPSILON) {
+    if (l2 < FLT_EPSILON) {  EXECUTE_MARK();
         // v == w case
         return v;
     }
@@ -320,11 +320,11 @@ Vector2<T> Vector2<T>::closest_point(const Vector2<T> &p, const Vector2<T> &v, c
     // It falls where t = [(p-v) . (w-v)] / |w-v|^2
     // We clamp t from [0,1] to handle points outside the segment vw.
     const float t = ((p - v) * (w - v)) / l2;
-    if (t <= 0) {
+    if (t <= 0) {  EXECUTE_MARK();
         return v;
-    } else if (t >= 1) {
+    } else if (t >= 1) {  EXECUTE_MARK();
         return w;
-    } else {
+    } else {  EXECUTE_MARK();
         return v + (w - v)*t;
     }
 }
@@ -339,16 +339,16 @@ Vector2<T> Vector2<T>::closest_point(const Vector2<T> &p, const Vector2<T> &w)
 {
     // length squared of line segment
     const float l2 = w.length_squared();
-    if (l2 < FLT_EPSILON) {
+    if (l2 < FLT_EPSILON) {  EXECUTE_MARK();
         // v == w case
         return w;
     }
     const float t = (p * w) / l2;
-    if (t <= 0) {
+    if (t <= 0) {  EXECUTE_MARK();
         return Vector2<T>(0,0);
-    } else if (t >= 1) {
+    } else if (t >= 1) {  EXECUTE_MARK();
         return w;
-    } else {
+    } else {  EXECUTE_MARK();
         return w*t;
     }
 }

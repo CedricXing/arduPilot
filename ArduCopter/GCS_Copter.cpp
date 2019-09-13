@@ -35,49 +35,49 @@ void GCS_Copter::update_vehicle_sensor_status_flags(void)
         MAV_SYS_STATUS_SENSOR_YAW_POSITION;
 
     const AP_GPS &gps = AP::gps();
-    if (gps.status() > AP_GPS::NO_GPS) {
+    if (gps.status() > AP_GPS::NO_GPS) {  EXECUTE_MARK();
         control_sensors_present |= MAV_SYS_STATUS_SENSOR_GPS;
         control_sensors_enabled |= MAV_SYS_STATUS_SENSOR_GPS;
     }
 #if OPTFLOW == ENABLED
     const OpticalFlow *optflow = AP::opticalflow();
-    if (optflow && optflow->enabled()) {
+    if (optflow && optflow->enabled()) {  EXECUTE_MARK();
         control_sensors_present |= MAV_SYS_STATUS_SENSOR_OPTICAL_FLOW;
         control_sensors_enabled |= MAV_SYS_STATUS_SENSOR_OPTICAL_FLOW;
     }
 #endif
 #if PRECISION_LANDING == ENABLED
-    if (copter.precland.enabled()) {
+    if (copter.precland.enabled()) {  EXECUTE_MARK();
         control_sensors_present |= MAV_SYS_STATUS_SENSOR_VISION_POSITION;
         control_sensors_enabled |= MAV_SYS_STATUS_SENSOR_VISION_POSITION;
     }
 #endif
 #if VISUAL_ODOMETRY_ENABLED == ENABLED
     const AP_VisualOdom *visual_odom = AP::visualodom();
-    if (visual_odom && visual_odom->enabled()) {
+    if (visual_odom && visual_odom->enabled()) {  EXECUTE_MARK();
         control_sensors_present |= MAV_SYS_STATUS_SENSOR_VISION_POSITION;
         control_sensors_enabled |= MAV_SYS_STATUS_SENSOR_VISION_POSITION;
     }
 #endif
     const Copter::ap_t &ap = copter.ap;
 
-    if (ap.rc_receiver_present) {
+    if (ap.rc_receiver_present) {  EXECUTE_MARK();
         control_sensors_present |= MAV_SYS_STATUS_SENSOR_RC_RECEIVER;
         control_sensors_enabled |= MAV_SYS_STATUS_SENSOR_RC_RECEIVER;
     }
 #if PROXIMITY_ENABLED == ENABLED
-    if (copter.g2.proximity.sensor_present()) {
+    if (copter.g2.proximity.sensor_present()) {  EXECUTE_MARK();
         control_sensors_present |= MAV_SYS_STATUS_SENSOR_PROXIMITY;
     }
 #endif
 #if AC_FENCE == ENABLED
-    if (copter.fence.sys_status_present()) {
+    if (copter.fence.sys_status_present()) {  EXECUTE_MARK();
         control_sensors_present |= MAV_SYS_STATUS_GEOFENCE;
     }
 #endif
 #if RANGEFINDER_ENABLED == ENABLED
     const RangeFinder *rangefinder = RangeFinder::get_singleton();
-    if (rangefinder && rangefinder->has_orientation(ROTATION_PITCH_270)) {
+    if (rangefinder && rangefinder->has_orientation(ROTATION_PITCH_270)) {  EXECUTE_MARK();
         control_sensors_present |= MAV_SYS_STATUS_SENSOR_LASER_POSITION;
     }
 #endif
@@ -113,40 +113,40 @@ void GCS_Copter::update_vehicle_sensor_status_flags(void)
     }
 
 #if AC_FENCE == ENABLED
-    if (copter.fence.sys_status_enabled()) {
+    if (copter.fence.sys_status_enabled()) {  EXECUTE_MARK();
         control_sensors_enabled |= MAV_SYS_STATUS_GEOFENCE;
     }
 #endif
 #if PROXIMITY_ENABLED == ENABLED
-    if (copter.g2.proximity.sensor_enabled()) {
+    if (copter.g2.proximity.sensor_enabled()) {  EXECUTE_MARK();
         control_sensors_enabled |= MAV_SYS_STATUS_SENSOR_PROXIMITY;
     }
 #endif
 
-    if (gps.is_healthy()) {
+    if (gps.is_healthy()) {  EXECUTE_MARK();
         control_sensors_health |= MAV_SYS_STATUS_SENSOR_GPS;
     }
-    if (ap.rc_receiver_present && !copter.failsafe.radio) {
+    if (ap.rc_receiver_present && !copter.failsafe.radio) {  EXECUTE_MARK();
         control_sensors_health |= MAV_SYS_STATUS_SENSOR_RC_RECEIVER;
     }
 #if OPTFLOW == ENABLED
-    if (optflow && optflow->healthy()) {
+    if (optflow && optflow->healthy()) {  EXECUTE_MARK();
         control_sensors_health |= MAV_SYS_STATUS_SENSOR_OPTICAL_FLOW;
     }
 #endif
 #if PRECISION_LANDING == ENABLED
-    if (copter.precland.enabled() && copter.precland.healthy()) {
+    if (copter.precland.enabled() && copter.precland.healthy()) {  EXECUTE_MARK();
         control_sensors_health |= MAV_SYS_STATUS_SENSOR_VISION_POSITION;
     }
 #endif
 #if VISUAL_ODOMETRY_ENABLED == ENABLED
-    if (visual_odom && visual_odom->enabled() && visual_odom->healthy()) {
+    if (visual_odom && visual_odom->enabled() && visual_odom->healthy()) {  EXECUTE_MARK();
         control_sensors_health |= MAV_SYS_STATUS_SENSOR_VISION_POSITION;
     }
 #endif
 
 #if PROXIMITY_ENABLED == ENABLED
-    if (!copter.g2.proximity.sensor_failed()) {
+    if (!copter.g2.proximity.sensor_failed()) {  EXECUTE_MARK();
         control_sensors_health |= MAV_SYS_STATUS_SENSOR_PROXIMITY;
     }
 #endif
@@ -169,16 +169,16 @@ void GCS_Copter::update_vehicle_sensor_status_flags(void)
 #endif
 
 #if RANGEFINDER_ENABLED == ENABLED
-    if (copter.rangefinder_state.enabled) {
+    if (copter.rangefinder_state.enabled) {  EXECUTE_MARK();
         control_sensors_enabled |= MAV_SYS_STATUS_SENSOR_LASER_POSITION;
-        if (rangefinder && rangefinder->has_data_orient(ROTATION_PITCH_270)) {
+        if (rangefinder && rangefinder->has_data_orient(ROTATION_PITCH_270)) {  EXECUTE_MARK();
             control_sensors_health |= MAV_SYS_STATUS_SENSOR_LASER_POSITION;
         }
     }
 #endif
 
 #if AC_FENCE == ENABLED
-    if (!copter.fence.sys_status_failed()) {
+    if (!copter.fence.sys_status_failed()) {  EXECUTE_MARK();
         control_sensors_health |= MAV_SYS_STATUS_GEOFENCE;
     }
 #endif

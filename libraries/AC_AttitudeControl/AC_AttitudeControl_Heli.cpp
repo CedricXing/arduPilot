@@ -173,12 +173,12 @@ void AC_AttitudeControl_Heli::passthrough_bf_roll_pitch_rate_yaw(float roll_pass
     _attitude_target_ang_vel.y = _ahrs.get_gyro().y;
 
     // accel limit desired yaw rate
-    if (get_accel_yaw_max_radss() > 0.0f) {
+    if (get_accel_yaw_max_radss() > 0.0f) {  EXECUTE_MARK();
         float rate_change_limit_rads = get_accel_yaw_max_radss() * _dt;
         float rate_change_rads = yaw_rate_bf_rads - _attitude_target_ang_vel.z;
         rate_change_rads = constrain_float(rate_change_rads, -rate_change_limit_rads, rate_change_limit_rads);
         _attitude_target_ang_vel.z += rate_change_rads;
-    } else {
+    } else {  EXECUTE_MARK();
         _attitude_target_ang_vel.z = yaw_rate_bf_rads;
     }
 
@@ -191,19 +191,19 @@ void AC_AttitudeControl_Heli::passthrough_bf_roll_pitch_rate_yaw(float roll_pass
 
     // convert angle error rotation vector into 321-intrinsic euler angle difference
     // NOTE: this results an an approximation linearized about the vehicle's attitude
-    if (ang_vel_to_euler_rate(Vector3f(_ahrs.roll, _ahrs.pitch, _ahrs.yaw), _att_error_rot_vec_rad, att_error_euler_rad)) {
+    if (ang_vel_to_euler_rate(Vector3f(_ahrs.roll, _ahrs.pitch, _ahrs.yaw), _att_error_rot_vec_rad, att_error_euler_rad)) {  EXECUTE_MARK();
         _attitude_target_euler_angle.x = wrap_PI(att_error_euler_rad.x + _ahrs.roll);
         _attitude_target_euler_angle.y = wrap_PI(att_error_euler_rad.y + _ahrs.pitch);
         _attitude_target_euler_angle.z = wrap_2PI(att_error_euler_rad.z + _ahrs.yaw);
     }
 
     // handle flipping over pitch axis
-    if (_attitude_target_euler_angle.y > M_PI / 2.0f) {
+    if (_attitude_target_euler_angle.y > M_PI / 2.0f) {  EXECUTE_MARK();
         _attitude_target_euler_angle.x = wrap_PI(_attitude_target_euler_angle.x + M_PI);
         _attitude_target_euler_angle.y = wrap_PI(M_PI - _attitude_target_euler_angle.x);
         _attitude_target_euler_angle.z = wrap_2PI(_attitude_target_euler_angle.z + M_PI);
     }
-    if (_attitude_target_euler_angle.y < -M_PI / 2.0f) {
+    if (_attitude_target_euler_angle.y < -M_PI / 2.0f) {  EXECUTE_MARK();
         _attitude_target_euler_angle.x = wrap_PI(_attitude_target_euler_angle.x + M_PI);
         _attitude_target_euler_angle.y = wrap_PI(-M_PI - _attitude_target_euler_angle.x);
         _attitude_target_euler_angle.z = wrap_2PI(_attitude_target_euler_angle.z + M_PI);
@@ -252,15 +252,15 @@ void AC_AttitudeControl_Heli::rate_controller_run()
 
     // call rate controllers and send output to motors object
     // if using a flybar passthrough roll and pitch directly to motors
-    if (_flags_heli.flybar_passthrough) {
+    if (_flags_heli.flybar_passthrough) {  EXECUTE_MARK();
         _motors.set_roll(_passthrough_roll / 4500.0f);
         _motors.set_pitch(_passthrough_pitch / 4500.0f);
-    } else {
+    } else {  EXECUTE_MARK();
         rate_bf_to_motor_roll_pitch(gyro_latest, _rate_target_ang_vel.x, _rate_target_ang_vel.y);
     }
-    if (_flags_heli.tail_passthrough) {
+    if (_flags_heli.tail_passthrough) {  EXECUTE_MARK();
         _motors.set_yaw(_passthrough_yaw / 4500.0f);
-    } else {
+    } else {  EXECUTE_MARK();
         _motors.set_yaw(rate_target_to_motor_yaw(gyro_latest.z, _rate_target_ang_vel.z));
     }
 }
@@ -268,6 +268,8 @@ void AC_AttitudeControl_Heli::rate_controller_run()
 // Update Alt_Hold angle maximum
 void AC_AttitudeControl_Heli::update_althold_lean_angle_max(float throttle_in)
 {
+	if(true){EXECUTE_MARK();
+	}
     float althold_lean_angle_max = acosf(constrain_float(_throttle_in / AC_ATTITUDE_HELI_ANGLE_LIMIT_THROTTLE_MAX, 0.0f, 1.0f));
     _althold_lean_angle_max = _althold_lean_angle_max + (_dt / (_dt + _angle_limit_tc)) * (althold_lean_angle_max - _althold_lean_angle_max);
 }
@@ -284,12 +286,12 @@ void AC_AttitudeControl_Heli::update_althold_lean_angle_max(float throttle_in)
 void AC_AttitudeControl_Heli::rate_bf_to_motor_roll_pitch(const Vector3f &rate_rads, float rate_roll_target_rads, float rate_pitch_target_rads)
 {
 
-    if (_flags_heli.leaky_i) {
+    if (_flags_heli.leaky_i) {  EXECUTE_MARK();
         _pid_rate_roll.update_leaky_i(AC_ATTITUDE_HELI_RATE_INTEGRATOR_LEAK_RATE);
     }
     float roll_pid = _pid_rate_roll.update_all(rate_roll_target_rads, rate_rads.x, _flags_heli.limit_roll);
 
-    if (_flags_heli.leaky_i) {
+    if (_flags_heli.leaky_i) {  EXECUTE_MARK();
         _pid_rate_pitch.update_leaky_i(AC_ATTITUDE_HELI_RATE_INTEGRATOR_LEAK_RATE);
     }
 
@@ -304,16 +306,16 @@ void AC_AttitudeControl_Heli::rate_bf_to_motor_roll_pitch(const Vector3f &rate_r
     float pitch_out = pitch_pid + pitch_ff;
 
     // constrain output and update limit flags
-    if (fabsf(roll_out) > AC_ATTITUDE_RATE_RP_CONTROLLER_OUT_MAX) {
+    if (fabsf(roll_out) > AC_ATTITUDE_RATE_RP_CONTROLLER_OUT_MAX) {  EXECUTE_MARK();
         roll_out = constrain_float(roll_out, -AC_ATTITUDE_RATE_RP_CONTROLLER_OUT_MAX, AC_ATTITUDE_RATE_RP_CONTROLLER_OUT_MAX);
         _flags_heli.limit_roll = true;
-    } else {
+    } else {  EXECUTE_MARK();
         _flags_heli.limit_roll = false;
     }
-    if (fabsf(pitch_out) > AC_ATTITUDE_RATE_RP_CONTROLLER_OUT_MAX) {
+    if (fabsf(pitch_out) > AC_ATTITUDE_RATE_RP_CONTROLLER_OUT_MAX) {  EXECUTE_MARK();
         pitch_out = constrain_float(pitch_out, -AC_ATTITUDE_RATE_RP_CONTROLLER_OUT_MAX, AC_ATTITUDE_RATE_RP_CONTROLLER_OUT_MAX);
         _flags_heli.limit_pitch = true;
-    } else {
+    } else {  EXECUTE_MARK();
         _flags_heli.limit_pitch = false;
     }
 
@@ -325,7 +327,7 @@ void AC_AttitudeControl_Heli::rate_bf_to_motor_roll_pitch(const Vector3f &rate_r
     // helicopter rotates in yaw.  Much of the built-up I-term is needed to tip the disk into the incoming wind.  Fast yawing can create an instability
     // as the built-up I-term in one axis must be reduced, while the other increases.  This helps solve that by rotating the I-terms before the error occurs.
     // It does assume that the rotor aerodynamics and mechanics are essentially symmetrical about the main shaft, which is a generally valid assumption. 
-    if (_piro_comp_enabled) {
+    if (_piro_comp_enabled) {  EXECUTE_MARK();
 
         // used to hold current I-terms while doing piro comp:
         const float piro_roll_i = _pid_rate_roll.get_i();
@@ -345,7 +347,7 @@ void AC_AttitudeControl_Heli::rate_bf_to_motor_roll_pitch(const Vector3f &rate_r
 // rate_bf_to_motor_yaw - ask the rate controller to calculate the motor outputs to achieve the target rate in radians/second
 float AC_AttitudeControl_Heli::rate_target_to_motor_yaw(float rate_yaw_actual_rads, float rate_target_rads)
 {
-    if (!((AP_MotorsHeli&)_motors).rotor_runup_complete()) {
+    if (!((AP_MotorsHeli&)_motors).rotor_runup_complete()) {  EXECUTE_MARK();
         _pid_rate_yaw.update_leaky_i(AC_ATTITUDE_HELI_RATE_INTEGRATOR_LEAK_RATE);
     }
 
@@ -358,10 +360,10 @@ float AC_AttitudeControl_Heli::rate_target_to_motor_yaw(float rate_yaw_actual_ra
     float yaw_out = pid + vff;
 
     // constrain output and update limit flag
-    if (fabsf(yaw_out) > AC_ATTITUDE_RATE_YAW_CONTROLLER_OUT_MAX) {
+    if (fabsf(yaw_out) > AC_ATTITUDE_RATE_YAW_CONTROLLER_OUT_MAX) {  EXECUTE_MARK();
         yaw_out = constrain_float(yaw_out, -AC_ATTITUDE_RATE_YAW_CONTROLLER_OUT_MAX, AC_ATTITUDE_RATE_YAW_CONTROLLER_OUT_MAX);
         _flags_heli.limit_yaw = true;
-    } else {
+    } else {  EXECUTE_MARK();
         _flags_heli.limit_yaw = false;
     }
 
@@ -386,7 +388,7 @@ void AC_AttitudeControl_Heli::set_throttle_out(float throttle_in, bool apply_ang
 // Command an euler roll and pitch angle and an euler yaw rate with angular velocity feedforward and smoothing
 void AC_AttitudeControl_Heli::input_euler_angle_roll_pitch_euler_rate_yaw(float euler_roll_angle_cd, float euler_pitch_angle_cd, float euler_yaw_rate_cds)
 {
-    if (_inverted_flight) {
+    if (_inverted_flight) {  EXECUTE_MARK();
         euler_roll_angle_cd = wrap_180_cd(euler_roll_angle_cd + 18000);
     }
     AC_AttitudeControl::input_euler_angle_roll_pitch_euler_rate_yaw(euler_roll_angle_cd, euler_pitch_angle_cd, euler_yaw_rate_cds);
@@ -395,7 +397,7 @@ void AC_AttitudeControl_Heli::input_euler_angle_roll_pitch_euler_rate_yaw(float 
 // Command an euler roll, pitch and yaw angle with angular velocity feedforward and smoothing
 void AC_AttitudeControl_Heli::input_euler_angle_roll_pitch_yaw(float euler_roll_angle_cd, float euler_pitch_angle_cd, float euler_yaw_angle_cd, bool slew_yaw)
 {
-    if (_inverted_flight) {
+    if (_inverted_flight) {  EXECUTE_MARK();
         euler_roll_angle_cd = wrap_180_cd(euler_roll_angle_cd + 18000);
     }
     AC_AttitudeControl::input_euler_angle_roll_pitch_yaw(euler_roll_angle_cd, euler_pitch_angle_cd, euler_yaw_angle_cd, slew_yaw);
