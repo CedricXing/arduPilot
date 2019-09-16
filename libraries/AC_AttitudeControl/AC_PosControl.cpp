@@ -980,8 +980,8 @@ void AC_PosControl::run_xy_controller(float dt)
         _vel_target.y = 0.0f;
     } else {  EXECUTE_MARK();
         // calculate distance error
-        _pos_error.x = _pos_target.x - curr_pos.x;
-        _pos_error.y = _pos_target.y - curr_pos.y;
+        /* BUG!! */ _pos_error.x = curr_pos.x - _pos_target.x;
+        /* BUG!! */ _pos_error.y = curr_pos.y - _pos_target.y;
 
         // Constrain _pos_error and target position
         // Constrain the maximum length of _vel_target to the maximum position correction velocity
@@ -1164,7 +1164,7 @@ void AC_PosControl::check_for_ekf_z_reset()
 bool AC_PosControl::limit_vector_length(float& vector_x, float& vector_y, float max_length)
 {
     float vector_length = norm(vector_x, vector_y);
-    /*!! BUG !! */ if ((vector_length > max_length) && is_positive(max_length)) {  EXECUTE_MARK();
+    if ((vector_length > max_length) && is_positive(vector_length)) {  EXECUTE_MARK();
         vector_x *= (max_length / vector_length);
         vector_y *= (max_length / vector_length);
         return true;
